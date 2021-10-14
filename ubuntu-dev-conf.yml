@@ -1,0 +1,67 @@
+---
+- name: Configure Dev Ubuntu Environment
+  hosts: localhost
+  become: yes
+
+  tasks:
+  - name: Packages are updated
+    package:
+      name: "*"
+      state: latest
+
+  - name: Packages Installed and Updated
+    package:
+      name:
+        - vim
+        - vim-syntastic
+        - tmux
+        - ansible
+        - python3
+      state: latest
+
+  - name: Directories Created
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ lookup('env', 'USER') }}"
+      group: "{{ lookup('env', 'USER') }}"
+      mode: '0755'
+    loop:
+      - /home/{{ lookup('env', 'USER') }}/projects
+      - /home/{{ lookup('env', 'USER') }}/projects/python-dev
+      - /home/{{ lookup('env', 'USER') }}/projects/ansible
+      - /home/{{ lookup('env', 'USER') }}/projects/ubuntu-auto-install
+      - /home/{{ lookup('env', 'USER') }}/projects/rhel-auto-install
+
+  - name: vimrc-setup script is downloaded
+    get_url:
+      url: https://raw.githubusercontent.com/jkelley41/config/main/vimrc-setup.sh
+      dest: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
+      owner: "{{ lookup('env', 'USER') }}"
+      group: "{{ lookup('env', 'USER') }}"
+      mode: '0744'
+
+      #  - name: vimrc is configured for python
+    #    shell: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
+
+  - name: vimrc is configured for ansible
+    lineinfile:
+      path: /home/{{ lookup('env', 'USER') }}/.vimrc
+      line: "{{ item }}"
+      state: present
+    loop:
+      - '" ansible'
+      - "autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab"
+
+  - name: .bashrc contains common aliases
+    lineinfile:
+      path: /home/{{ lookup('env', 'USER') }}/.bashrc
+      line: "{{ item }}"
+      state: present
+    loop:
+      - "alias ap='ansible-playbook'"
+      - "alias ad='ansible-doc'"
+      - "alias ag='ansible-galaxy'"
+      - "alias sshgit='ssh -i ~/.ssh/github_rsa git@github.com'"
+      - "alias ..='cd ..'"
+      - "alias ai='sudo apt install'"
