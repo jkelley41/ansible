@@ -41,8 +41,8 @@
       group: "{{ lookup('env', 'USER') }}"
       mode: '0744'
 
-      #  - name: vimrc is configured for python
-    #    shell: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
+  - name: vimrc is configured for python
+    shell: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
 
   - name: vimrc is configured for ansible
     lineinfile:
