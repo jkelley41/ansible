@@ -17,6 +17,7 @@
         - tmux
         - ansible
         - python3
+        - python3-winrm
       state: latest
 
   - name: Directories Created
@@ -30,8 +31,8 @@
       - /home/{{ lookup('env', 'USER') }}/projects
       - /home/{{ lookup('env', 'USER') }}/projects/python-dev
       - /home/{{ lookup('env', 'USER') }}/projects/ansible
-      - /home/{{ lookup('env', 'USER') }}/projects/ubuntu-auto-install
-      - /home/{{ lookup('env', 'USER') }}/projects/rhel-auto-install
+      - /home/{{ lookup('env', 'USER') }}/.vim
+      - /home/{{ lookup('env', 'USER') }}/.vim/autoload
 
   - name: vimrc-setup script is downloaded
     get_url:
@@ -41,17 +42,40 @@
       group: "{{ lookup('env', 'USER') }}"
       mode: '0744'
 
-  - name: vimrc is configured for python
-    shell: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
+   - name: vimrc is configured for python
+     shell: /home/{{ lookup('env', 'USER') }}/vimrc-setup.sh
+      
+   - name: vim-plug is downloaded
+     get_url:
+       url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+       dest: /home/{{ lookup('env', 'USER') }}/.vim/autoload/plug.vim
+       owner: "{{ lookup('env', 'USER') }}"
+       group: "{{ lookup('env', 'USER') }}"
+       mode: '0744'
 
+  - name: Add vim-plug to .vimrc
+    blockinfile:
+      path: /home/{{ lookup('env', 'USER') }}/.vimrc
+      marker: '" {mark} ANSIBLE MANAGED BLOCK'
+      block: |
+        call plug#begin()
+        call plug#end()
+   
   - name: vimrc is configured for ansible
     lineinfile:
       path: /home/{{ lookup('env', 'USER') }}/.vimrc
-      line: "{{ item }}"
-      state: present
-    loop:
-      - '" ansible'
-      - "autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab"
+      insertbefore: '^call plug#end()'
+      line: "   Plug 'pearofducks/ansible-vim'"
+
+  - name: vimrc is configured for powershell 
+    lineinfile:
+      path: /home/{{ lookup('env', 'USER') }}/.vimrc
+      insertbefore: '^call plug#end()'
+      line: "   Plug 'pprovost/vim-ps1'"
+
+  - name: vim-plug plugins are installed
+    shell: 'vim -E -s -c "source ~/.vimrc" -c PlugInstall -c qa'
+    ignore_errors: yes
 
   - name: .bashrc contains common aliases
     lineinfile:
@@ -65,3 +89,5 @@
       - "alias sshgit='ssh -i ~/.ssh/github_rsa git@github.com'"
       - "alias ..='cd ..'"
       - "alias ai='sudo apt install'"
+      - "alias vimrc='vim ~/.vimrc'"
+      - "alias bashrc='vim ~/.bashrc'"
