@@ -1,0 +1,8 @@
+---
+# tasks file for install-ssh-key
+
+- name: Add SSH key to authorized keys
+  authorized_key:
+    user: jake
+    state: present
+    key: "{{ lookup ('file', ssh_key_path ) }}"

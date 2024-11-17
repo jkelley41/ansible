@@ -1,2 +1,8 @@
 ---
 # This playbook will install the specified ssh key as an authorized key on the targeted hosts.
+
+- name: Install SSH Key role
+  hosts: all
+  become: false
+  roles:
+    - install-ssh-key
