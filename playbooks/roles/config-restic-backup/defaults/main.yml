@@ -1,2 +1,5 @@
 ---
 # defaults file for config-restic-backup
+restic_repo: "sftp:root@unraid.kelleymsp.com:/mnt/user/backups/{{ inventory_hostname }}"
+restic_pw: "resticpw"
+cron_schedule: "30 3 * * *"

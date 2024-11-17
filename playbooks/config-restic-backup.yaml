@@ -1,0 +1,8 @@
+---
+# This playbook will install and configure restic backups
+
+- name: Install & Configure restic
+  hosts: all
+  become: true
+  roles:
+    - config-restic-backup

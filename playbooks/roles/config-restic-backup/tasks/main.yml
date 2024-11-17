@@ -1,2 +1,18 @@
 ---
 # tasks file for config-restic-backup
+
+#- name: Configure SSH to NAS - known hosts file?
+
+- name: Install restic
+  package:
+    name: restic
+    state: present
+
+- name: Initialize restic repo
+  become: false
+  command: restic init
+  environment: 
+    RESTIC_REPOSITORY: "{{ restic_repo }}"
+    RESTIC_PASSWORD: "{{ restic_pw }}"
+
+#- name: Schedule restic backup with cronjob
