@@ -1,18 +1,45 @@
 ---
 # tasks file for config-restic-backup
 
-#- name: Configure SSH to NAS - known hosts file?
+- name: Add NAS to known hosts file
+  known_hosts:
+    path: /etc/ssh/ssh_known_hosts
+    name: "{{ backup_server }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan {{ backup_server }}') }}"
 
 - name: Install restic
   package:
     name: restic
     state: present
 
+- name: Idempotence check - restic repo
+  become: false
+  shell: "restic -r {{ restic_repo }} cat config"
+  register: restic_repo_check
+  ignore_errors: true
+  environment:
+    RESTIC_PASSWORD: "{{ backup_password }}"
+
 - name: Initialize restic repo
   become: false
-  command: restic init
+  shell: restic init
+  when: restic_repo_check.rc != 0
   environment: 
     RESTIC_REPOSITORY: "{{ restic_repo }}"
-    RESTIC_PASSWORD: "{{ restic_pw }}"
+    RESTIC_PASSWORD: "{{ backup_password }}"
 
-#- name: Schedule restic backup with cronjob
+- name: Schedule 3:30AM restic backup with cronjob
+  become: false
+  cron:
+    name: "restic scheduled backup"
+    minute: "30"
+    hour: "3"
+    job: "restic -r {{ restic_repo }} backup --one-file-system /"
+
+- name: Schedule 12:30AM restic snapshot cleanup with cronjob
+  become: false
+  cron:
+    name: "restic snapshot cleanup"
+    minute: "30"
+    hour: "0"
+    job: "restic forget --keep-daily 30 --keep-weekly 4 --keep-monthly 12 --prune -r {{ restic_repo }}"

@@ -1,3 +1,4 @@
 ---
 # defaults file for install-ssh-key
-ssh_key_path: "~/.ssh/id_rsa.pub"
+ssh_pub_key_path: "~/.ssh/id_rsa.pub"
+ssh_priv_key_path: "~/.ssh/id_rsa"
