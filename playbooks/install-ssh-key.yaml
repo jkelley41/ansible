@@ -1,0 +1,2 @@
+---
+# This playbook will install the specified ssh key as an authorized key on the targeted hosts.
